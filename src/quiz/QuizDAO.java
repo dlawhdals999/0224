@@ -86,19 +86,30 @@ public class QuizDAO {
 	}
 
 	public static void addScore(int an, int wr) {
-		
-		try {
-			MemberInfoVO vo = BoardMain.getMvo();
-			Connection conn = DBUtil.getMySQLConnection();
-			String sql = "UPDATE memberinfo SET answerCount=? , wrongCount=? WHERE userNo=?";
-			PreparedStatement pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, an);
-			pstmt.setInt(2, wr);
-			pstmt.setInt(3, vo.getUserNo());
-			pstmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+	MemberInfoVO vo = BoardMain.getMvo();
+		if(vo.getNickName()==null) {
+		}else {
+			try {
+//				DB의 기존의 데이터를 읽어온다.			
+				Connection conn = DBUtil.getMySQLConnection();
+				String sql = "SELECT answerCount,wrongCount FROM memberinfo where userNo=?";
+				PreparedStatement pstmt = conn.prepareStatement(sql);
+				pstmt.setInt(1, vo.getUserNo());
+				ResultSet rs = pstmt.executeQuery();
+				rs.next();
+				int ans = rs.getInt("answerCount");
+				int wrg = rs.getInt("wrongCount");
+//				DB에 기존의 값과 방금 푼 문제의 결과를 더해서 업데이트한다.			
+				sql = "UPDATE memberinfo SET answerCount=? , wrongCount=? WHERE userNo=?";
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setInt(1, an+ans);
+				pstmt.setInt(2, wr+wrg);
+				pstmt.setInt(3, vo.getUserNo());
+				pstmt.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}//end else
+	}//end addScore
 
 }
